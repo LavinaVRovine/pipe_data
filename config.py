@@ -12,7 +12,7 @@ USER = os.getenv("USER", 'postgres')
 DB_PASSWORD = os.getenv("DB_PASSWORD", 'supersweet password')
 DATABASE_URI = f"postgresql+psycopg2://{USER}:{DB_PASSWORD}@{DB_HOST}:5432/{PIPE_DATABASE}"
 
-# logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 MY_LOGGER = logging.getLogger(__name__)
 
 # c_handler = logging.StreamHandler()

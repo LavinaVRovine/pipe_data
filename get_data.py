@@ -33,35 +33,14 @@ def get_data(endpoint: str, start: int = 0, data=None, additional_url_params="")
     return data
 
 
-def split_deal_df(df: pd.DataFrame) ->tuple:
+def split_df(df: pd.DataFrame, main_columns: list) ->tuple:
     """Splits deal dataframe to two. First containing main deal fields, the other all custom fields
     :returns tuple of DFs, first main, second special fields
 
     """
-    deal_cols = [
-        'active',
-        'activities_count', 'add_time',
-        'cc_email', 'close_time',
-        'creator_user_id', 'currency', 'deleted', 'done_activities_count',
-        'email_messages_count',
-        'expected_close_date',
-        'files_count',
-        'first_won_time', 'followers_count', 'formatted_value',
-        'formatted_weighted_value', 'id', 'last_activity_date',
-        'last_activity_id', 'last_incoming_mail_time',
-        'last_outgoing_mail_time', 'lost_reason', 'lost_time',
-        'next_activity_date', 'next_activity_duration', 'next_activity_id',
-        'next_activity_note', 'next_activity_subject', 'next_activity_time',
-        'next_activity_type', 'notes_count', 'org_hidden', 'org_id', 'org_name',
-        'owner_name', 'participants_count', 'person_hidden', 'person_id',
-        'person_name', 'pipeline_id', 'probability', 'products_count',
-        'reference_activities_count', 'rotten_time', 'stage_change_time',
-        'stage_id', 'stage_order_nr', 'status', 'title',
-        'undone_activities_count', 'update_time', 'user_id', 'value',
-        'visible_to', 'weighted_value', 'weighted_value_currency', 'won_time']
-
-    main_deals_df = df[deal_cols]
-    df.drop(deal_cols, axis=1, inplace=True)
+    # TODO: hele proc to funguje? nemeo by to byt na copy?
+    main_deals_df = df[main_columns]
+    df.drop(main_columns, axis=1, inplace=True)
     special_fields = df.unstack().dropna().reset_index().rename(
         {"level_0": "field_id", "level_1": "deal_id", 0: "field_value"}, axis=1)
     special_fields['field_value'] = special_fields['field_value'].astype(str)
