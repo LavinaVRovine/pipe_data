@@ -3,6 +3,7 @@ from helpers import reformat_dates,  handle_jsons, add_writetime_column, extract
 from db_handle import validate_columns, engine
 from deal_flow import handle_deal_flow
 from config import MY_LOGGER
+import pandas as pd
 
 
 def add_deal_ids(df):
@@ -15,17 +16,23 @@ def add_deal_ids(df):
     return df
 
 
-def handle_deals():
+def get_formatted_deals(additional_url_params):
     endpoint = "deals"
-    df = reformat_dates(get_data(endpoint, additional_url_params="&sort=update_time DESC"))
+    df = reformat_dates(get_data(endpoint, additional_url_params=additional_url_params))
     main_fields_df, special_fields_df = split_deal_df(df)
     main_fields_df = add_deal_ids(main_fields_df)
     main_fields_df = handle_jsons(main_fields_df)
+    return main_fields_df, special_fields_df
 
-    write_to_db(endpoint, main_fields_df)
-    write_to_db(f"{endpoint}_special_fields", special_fields_df)
-    add_writetime_column(main_fields_df)
-    add_writetime_column(special_fields_df)
+
+def handle_deals():
+    endpoint = "deals"
+    main_fields_df, special_fields_df = get_formatted_deals(additional_url_params="&sort=update_time DESC")
+    deleted_main_fields_df, deleted_special_fields_df =\
+        get_formatted_deals(additional_url_params="&sort=update_time DESC&status=deleted")
+
+    write_to_db(endpoint, pd.concat([main_fields_df, deleted_main_fields_df]))
+    write_to_db(f"{endpoint}_special_fields", pd.concat([special_fields_df, deleted_special_fields_df]))
 
 
 def write_to_db(endpoint, df, if_exist='replace'):
