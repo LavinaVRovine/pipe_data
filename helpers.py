@@ -2,10 +2,21 @@ import pandas as pd
 from config import PIPE_DATE_FORMAT
 import json
 from datetime import datetime
+from typing import Optional
 
 
 class GetNotSucceedException(Exception):
     pass
+
+
+def extract_id(df: pd.DataFrame, column_name: str) -> Optional[pd.Series]:
+    try:
+        if column_name == 'org_id':
+            return df[column_name].apply(lambda x: None if x is None else x['value'])
+        else:
+            return df[column_name].apply(lambda x: None if x is None else x['id'])
+    except KeyError:
+        return
 
 
 def reformat_dates(df: pd.DataFrame) -> pd.DataFrame:

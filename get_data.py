@@ -33,7 +33,7 @@ def get_data(endpoint: str, start: int = 0, data=None, additional_url_params="")
     return data
 
 
-def split_df(df: pd.DataFrame) ->tuple:
+def split_deal_df(df: pd.DataFrame) ->tuple:
     """Splits deal dataframe to two. First containing main deal fields, the other all custom fields
     :returns tuple of DFs, first main, second special fields
 

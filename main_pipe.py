@@ -1,14 +1,25 @@
-from get_data import get_data, split_df
-from helpers import reformat_dates,  handle_jsons, add_writetime_column
+from get_data import get_data, split_deal_df
+from helpers import reformat_dates,  handle_jsons, add_writetime_column, extract_id
 from db_handle import validate_columns, engine
 from deal_flow import handle_deal_flow
 from config import MY_LOGGER
 
 
+def add_deal_ids(df):
+    for column in ["creator_user_id", "org_id", "person_id", "user_id"]:
+        extracted = extract_id(df, column)
+        if extracted is None:
+            pass
+        else:
+            df.loc[:, column+"_id"] = extracted
+    return df
+
+
 def handle_deals():
     endpoint = "deals"
     df = reformat_dates(get_data(endpoint, additional_url_params="&sort=update_time DESC"))
-    main_fields_df, special_fields_df = split_df(df)
+    main_fields_df, special_fields_df = split_deal_df(df)
+    main_fields_df = add_deal_ids(main_fields_df)
     main_fields_df = handle_jsons(main_fields_df)
 
     write_to_db(endpoint, main_fields_df)
