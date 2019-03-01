@@ -2,13 +2,13 @@ import pandas as pd
 from get_data import get_data, split_df
 from helpers import reformat_dates,  handle_jsons, add_writetime_column, extract_id
 from db_handle import validate_columns, engine
-from deal_flow import handle_deal_flow
+from deal_flow import handle_deal_flow_and_email
 from config import MY_LOGGER
 from get_activities import get_new_activities
 
 
-def add_deal_ids(df):
-    for column in ["creator_user_id", "org_id", "person_id", "user_id"]:
+def add_ids(df, column_names: list):
+    for column in column_names:
         extracted = extract_id(df, column)
         if extracted is None:
             pass
@@ -44,7 +44,7 @@ def get_formatted_deals(additional_url_params):
     endpoint = "deals"
     df = reformat_dates(get_data(endpoint, additional_url_params=additional_url_params))
     main_fields_df, special_fields_df = split_df(df, main_columns)
-    main_fields_df = add_deal_ids(main_fields_df)
+    main_fields_df = add_ids(main_fields_df, ["creator_user_id", "org_id", "person_id", "user_id"])
     main_fields_df = handle_jsons(main_fields_df)
     return main_fields_df, special_fields_df
 
@@ -101,20 +101,25 @@ def handle_organizations():
 
     df = reformat_dates(get_data(endpoint, additional_url_params="&filter_id=238"))
     main_fields_df, special_fields_df = split_df(df, main_columns)
-    main_fields_df = add_deal_ids(main_fields_df)
+    main_fields_df = add_ids(main_fields_df, ["owner_id"])
     main_fields_df = handle_jsons(main_fields_df)
 
     write_to_db(endpoint, main_fields_df)
     write_to_db(f"{endpoint}_special_fields", special_fields_df)
 
 
-def handle_flow():
-    flow_data = handle_deal_flow()
+def handle_flow_and_email():
+    flow_data, email_data = handle_deal_flow_and_email()
     # No new deal changes
     if flow_data is None:
-        return
-    if len(flow_data) > 0:
+        pass
+    elif len(flow_data) > 0:
         write_to_db("flow", flow_data, 'append')
+
+    if email_data is None:
+        pass
+    elif len(email_data) > 0:
+        write_to_db("emails", email_data, 'append')
 
 
 def main():
@@ -123,11 +128,12 @@ def main():
     handle_endpoint("users")
     handle_endpoint("stages")
     handle_endpoint("pipelines")
-    handle_flow()
+    handle_flow_and_email()
     handle_organizations()
     handle_activities()
     MY_LOGGER.info("Successfully finished data update.")
 
 
 if __name__ == "__main__":
-    main()
+    # main()
+    handle_flow_and_email()

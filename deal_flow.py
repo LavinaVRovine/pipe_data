@@ -43,18 +43,53 @@ def reformat_updates_df(df: pd.DataFrame) -> pd.DataFrame:
     ]
 
 
-def handle_deal_flow():
+def filter_old_mails(df: pd.DataFrame) -> pd.DataFrame:
+    df["message_time"] = pd.to_datetime(df["message_time"], errors="coerce", format=PIPE_DATE_FORMAT)
+    if last_check is None:
+        return df
+    return df.loc[
+        df['message_time'] > last_check,
+        :
+    ]
+
+
+def extract_mail_columns(data_series):
+    relevant_keys = ["user_id", 'mail_thread_id', 'subject', 'message_time', 'add_time',  'company_id']
+    return pd.Series(
+        {key: (data_series[key] if key in data_series else None) for key in relevant_keys},
+        index=relevant_keys
+    )
+
+
+def handle_deal_flow_and_email():
     updated_deals = get_deal_ids_recently_updated(last_check_formatted)
     if updated_deals is None:
         return
     output = None
+    mail_output = None
     for deal_id in updated_deals:
         if output is None:
             output = get_data(f"deals/{deal_id}/flow")
         else:
             output = pd.concat([output, get_data(f"deals/{deal_id}/flow")])
-    return reformat_updates_df(output).reset_index(drop=True)
+
+        if mail_output is None:
+            mail_output = get_data(f"deals/{deal_id}/mailMessages")
+            if "data" not in mail_output:
+                continue
+            else:
+                mail_output = mail_output["data"].apply(extract_mail_columns)
+        else:
+            data = get_data(f"deals/{deal_id}/mailMessages")
+            if "data" not in data:
+                continue
+            else:
+                d = data["data"].apply(extract_mail_columns)
+            mail_output =\
+                pd.concat([mail_output, d])
+        print(f"done deal {deal_id}")
+    return reformat_updates_df(output).reset_index(drop=True), filter_old_mails(mail_output.reset_index(drop=True))
 
 
 if __name__ == "__main__":
-    x = handle_deal_flow()
+    x = handle_deal_flow_and_email()
