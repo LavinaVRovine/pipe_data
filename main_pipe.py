@@ -2,7 +2,7 @@ import pandas as pd
 from get_data import get_data, split_df
 from helpers import reformat_dates,  handle_jsons, add_writetime_column, extract_id
 from db_handle import validate_columns, engine
-from deal_flow import handle_deal_flow_and_email
+from deal_flow_emails import handle_deal_flow_and_email
 from config import MY_LOGGER
 from get_activities import get_new_activities
 
@@ -135,5 +135,4 @@ def main():
 
 
 if __name__ == "__main__":
-    # main()
-    handle_flow_and_email()
+    main()

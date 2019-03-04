@@ -44,7 +44,8 @@ def reformat_updates_df(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def filter_old_mails(df: pd.DataFrame) -> pd.DataFrame:
-    df["message_time"] = pd.to_datetime(df["message_time"], errors="coerce", format=PIPE_DATE_FORMAT)
+    df["message_time"] =\
+        pd.to_datetime(df["message_time"], errors="coerce", format=PIPE_DATE_FORMAT).dt.tz_localize(None)
     if last_check is None:
         return df
     return df.loc[
@@ -53,12 +54,13 @@ def filter_old_mails(df: pd.DataFrame) -> pd.DataFrame:
     ]
 
 
-def extract_mail_columns(data_series):
+def extract_mail_columns(data_series, deal_id):
     relevant_keys = ["user_id", 'mail_thread_id', 'subject', 'message_time', 'add_time',  'company_id']
-    return pd.Series(
+    series = pd.Series(
         {key: (data_series[key] if key in data_series else None) for key in relevant_keys},
-        index=relevant_keys
-    )
+        index=relevant_keys)
+    series["deal_id"] = deal_id
+    return series
 
 
 def handle_deal_flow_and_email():
@@ -67,7 +69,7 @@ def handle_deal_flow_and_email():
         return
     output = None
     mail_output = None
-    for deal_id in updated_deals:
+    for deal_id in sorted(updated_deals):
         if output is None:
             output = get_data(f"deals/{deal_id}/flow")
         else:
@@ -78,16 +80,15 @@ def handle_deal_flow_and_email():
             if "data" not in mail_output:
                 continue
             else:
-                mail_output = mail_output["data"].apply(extract_mail_columns)
+                mail_output = mail_output["data"].apply(lambda row: extract_mail_columns(row, deal_id))
         else:
             data = get_data(f"deals/{deal_id}/mailMessages")
             if "data" not in data:
                 continue
             else:
-                d = data["data"].apply(extract_mail_columns)
+                d = data["data"].apply(lambda row: extract_mail_columns(row, deal_id))
             mail_output =\
                 pd.concat([mail_output, d])
-        print(f"done deal {deal_id}")
     return reformat_updates_df(output).reset_index(drop=True), filter_old_mails(mail_output.reset_index(drop=True))
 
 

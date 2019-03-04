@@ -39,14 +39,18 @@ def split_df(df: pd.DataFrame, main_columns: list) ->tuple:
 
     """
     # TODO: hele proc to funguje? nemeo by to byt na copy?
-    main_deals_df = df[main_columns]
-    df.drop(main_columns, axis=1, inplace=True)
-    special_fields = df.unstack().dropna().reset_index().rename(
-        {"level_0": "field_id", "level_1": "deal_id", 0: "field_value"}, axis=1)
+    main_deals_df = df[main_columns].copy()
+    # keep id...
+    remove_columns = list(set(main_columns) - {"id"})
+
+    df.drop(remove_columns, axis=1, inplace=True)
+
+    special_fields = pd.melt(df, id_vars="id").dropna().rename(
+        {"variable": "field_id", "id": "deal_id", "value": "field_value"}, axis=1)
+
     special_fields['field_value'] = special_fields['field_value'].astype(str)
     return main_deals_df, special_fields
 
 
 if __name__ == "__main__":
-    # x = get_data("users")
-    x = get_data("deals", additional_url_params="&sort=update_time DESC")
+    pass
