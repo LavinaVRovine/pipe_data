@@ -128,6 +128,7 @@ def main():
     handle_endpoint("users")
     handle_endpoint("stages")
     handle_endpoint("pipelines")
+    handle_endpoint("activityTypes")
     handle_flow_and_email()
     handle_organizations()
     handle_activities()
