@@ -98,8 +98,7 @@ def handle_organizations():
                     'related_lost_deals_count', 'related_open_deals_count',
                     'related_won_deals_count', 'undone_activities_count', 'update_time',
                     'visible_to', 'won_deals_count']
-
-    df = reformat_dates(get_data(endpoint, additional_url_params="&filter_id=238"))
+    df = reformat_dates(get_data(endpoint, additional_url_params="&filter_id=325"))
     main_fields_df, special_fields_df = split_df(df, main_columns)
     main_fields_df = add_ids(main_fields_df, ["owner_id"])
     main_fields_df = handle_jsons(main_fields_df)

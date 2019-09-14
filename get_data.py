@@ -53,4 +53,12 @@ def split_df(df: pd.DataFrame, main_columns: list) ->tuple:
 
 
 if __name__ == "__main__":
-    pass
+    xy = get_data(endpoint="deals")
+    probable_old_id = "61eeb3107922fb3ee64f7ae1f2b8a937f13420d6"
+    valid_part = xy[~xy[probable_old_id].isnull()]
+    new_field_id = "855af90585a8f3735cfb2ba221dfebd994236c6c"
+
+    valid_part[["id","title", probable_old_id]].to_csv("restoredata.csv")
+
+
+
