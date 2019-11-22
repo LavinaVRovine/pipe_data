@@ -39,7 +39,7 @@ def get_formatted_deals(additional_url_params):
         'reference_activities_count', 'rotten_time', 'stage_change_time',
         'stage_id', 'stage_order_nr', 'status', 'title',
         'undone_activities_count', 'update_time', 'user_id', 'value',
-        'visible_to', 'weighted_value', 'weighted_value_currency', 'won_time']
+        'visible_to', 'weighted_value', 'weighted_value_currency', 'won_time', '17d68b37edee60b6fa85af8d3451f5b2159f2a75', 'b3ed79acdf638cb1aab4661b60c59f8fbeef3f20', 'afdde0a5667b7221d41b4560c63b886d9cfb200b']
 
     endpoint = "deals"
     df = reformat_dates(get_data(endpoint, additional_url_params=additional_url_params))
